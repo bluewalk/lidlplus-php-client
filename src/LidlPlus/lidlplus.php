@@ -1,5 +1,7 @@
 <?php
 
+namespace Net\Bluewalk\LidlPlus;
+
 class LidlPlus
 {
   private $url = 'https://content.lidlplus.com/v1/NL/';
