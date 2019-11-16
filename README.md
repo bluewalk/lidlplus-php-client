@@ -18,3 +18,6 @@ $latest = $lidl->GetReceiptJpeg($receipts->Records[0]->Id);
 header('Content-type: image/jpeg');
 print $latest;
 ```
+
+## Acknowledgments
+This script is using a stripped down version of Kreative Software's barcode.php (https://github.com/kreativekorp/barcode)
