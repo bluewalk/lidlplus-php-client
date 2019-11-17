@@ -10,7 +10,9 @@ You can do this with Fiddler or Proxie. Install the CA certificate on your phone
 You'll see a request going to `https://accounts.lidl.com/connect/token` which will use your `refresh_token`.
 
 ```php
-$lidl = new LidlPlus('MyRefreshToken');
+require_once __DIR__ . 'vendor/autoload.php'; 
+
+$lidl = new Net\Bluewalk\LidlPlus\LidlPlus('MyRefreshToken');
 $receipts = $lidl->GetReceipts();
 
 $latest = $lidl->GetReceiptJpeg($receipts->Records[0]->Id);
