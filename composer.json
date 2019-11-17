@@ -1,0 +1,23 @@
+{
+    "name": "bluewalk/lidlplus",
+    "description": "Lidl Plus PHP API client",
+    "type": "library",
+    "license": "MIT",
+    "homepage": "https://github.com/bluewalk/lidlplus-php-client",
+    "keywords": ["lidl", "plus", "api", "php", "client", "receipts"],
+    "authors": [
+        {
+            "name": "Bluewalk",
+            "email": "github@bluewalk.net"
+        }
+    ],
+    "require": {
+      "php": ">=5.3.0"
+    },
+    "minimum-stability": "dev",
+    "autoload": {
+      "psr-4": {
+          "Net\\Bluewalk\\LidlPlus\\": ["src/LidlPlus"]
+      }
+  }
+}
