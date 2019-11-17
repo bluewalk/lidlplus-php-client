@@ -26,6 +26,8 @@ DEALINGS IN THE SOFTWARE.
 
 \****************************************************************************/
 
+namespace Net\Bluewalk\LidlPlus;
+
 if (realpath(__FILE__) == realpath($_SERVER['SCRIPT_FILENAME'])) {
 	if (isset($_POST['s']) && isset($_POST['d'])) {
 		$generator = new barcode_generator();
