@@ -201,6 +201,10 @@ class LidlPlus
         $str .= sprintf("%-45s%5s\n", $item->Deposit->Description, $item->Deposit->Amount);
         $str .= "    " . $item->Deposit->Quantity . ' X ' . $item->Deposit->UnitPrice . PHP_EOL;
       }
+
+      if ($item->Discounts)
+        foreach ($item->Discounts as $discount)
+          $str .= sprintf("   %-42s%5s\n", $discount->Description, '-' . $discount->Amount);
     }
   
     $str .= sprintf("%-38s%s", "", "------------") . PHP_EOL;
