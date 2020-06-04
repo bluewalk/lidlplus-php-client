@@ -4,9 +4,8 @@ namespace Net\Bluewalk\LidlPlus;
 
 class LidlPlus
 {
-  private $url = 'https://content.lidlplus.com/v1/NL/';
   private $account_url = 'https://accounts.lidl.com/';
-  private $appgateway_url = 'https://appgateway.lidlplus.com/app/v15/NL/';
+  private $appgateway_url = 'https://appgateway.lidlplus.com/app/v19/NL/';
   private $token;
   private $refresh_token;
   private $token_file;
@@ -38,7 +37,12 @@ class LidlPlus
   {
     $ch = curl_init();
 
-    $headers = [];
+    $headers = [
+      'App-Version: 14.21.2',
+      'Operating-System: iOS',
+      'App: com.lidl.eci.lidl.plus',
+      'Accept-Language: nl_NL'
+    ];
     $query_params = '';
 
     if ($this->token)
@@ -57,7 +61,7 @@ class LidlPlus
       if ($data)
         $query_params = '?' . http_build_query($data);
 
-    curl_setopt($ch, CURLOPT_URL, $this->url . $endpoint . $query_params);
+    curl_setopt($ch, CURLOPT_URL, $this->appgateway_url . $endpoint . $query_params);
 
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
@@ -113,36 +117,6 @@ class LidlPlus
     return json_decode($result);
   }
 
-  private function _request_appgateway($endpoint)
-  {
-      $ch = curl_init();
-  
-      curl_setopt($ch, CURLOPT_URL, $this->appgateway_url . $endpoint);
-  
-      curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-      curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-  
-      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-      
-      curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'App-Version: 14.13.2',
-        'Operating-System: iOS',
-        'App: com.lidl.eci.lidl.plus'
-      ]);
-      
-      //curl_setopt($ch, CURLOPT_PROXY, '127.0.0.1:1080');
-  
-      $result = curl_exec($ch);
-  
-      $error = curl_error($ch);
-      if ($error)
-        throw new Exception('Lidl API: ' . $error);
-  
-      curl_close($ch);
-  
-      return json_decode($result);
-  }
-
   public function RefreshToken()
   {
     $result = $this->_request_auth();
@@ -169,7 +143,7 @@ class LidlPlus
 
   public function GetStore(string $store)
   {
-    return $this->_request_appgateway(sprintf($this::$ENDPOINT_STORE, $store));
+    return $this->_request(sprintf($this::$ENDPOINT_STORE, $store));
   }
 
   public function GetReceiptJpeg(string $id = '')
@@ -183,47 +157,47 @@ class LidlPlus
 
     if (property_exists($receipt, 'Message')) return null;
 
-    $store = $this->GetStore($receipt->StoreCode);
+    $store = $this->GetStore($receipt->storeCode);
 
     $header = strcenter($store->address) . PHP_EOL;
     $header .= strcenter($store->postalCode . ' ' . $store->locality) . PHP_EOL;
 
     $str = sprintf("%-45s%5s\n", "OMSCHRIJVING", "EUR");
-    foreach ($receipt->ItemsLine as $item) {
-      $str .= sprintf("%-45s%5s\n", $item->Description, $item->OriginalAmount);
-      if ($item->Quantity != 1)
-        if ($item->IsWeight)
-          $str .= "    " . $item->Quantity . ' kg x ' . $item->CurrentUnitPrice . ' EUR/kg' . PHP_EOL;
+    foreach ($receipt->itemsLine as $item) {
+      $str .= sprintf("%-45s%5s\n", $item->description, $item->originalAmount);
+      if ($item->quantity != 1)
+        if ($item->isWeight)
+          $str .= "    " . $item->quantity . ' kg x ' . $item->currentUnitPrice . ' EUR/kg' . PHP_EOL;
         else
-          $str .= "    " . $item->Quantity . ' X ' . $item->CurrentUnitPrice . PHP_EOL;
+          $str .= "    " . $item->quantity . ' X ' . $item->currentUnitPrice . PHP_EOL;
   
-      if ($item->Deposit) {
-        $str .= sprintf("%-45s%5s\n", $item->Deposit->Description, $item->Deposit->Amount);
-        $str .= "    " . $item->Deposit->Quantity . ' X ' . $item->Deposit->UnitPrice . PHP_EOL;
+      if ($item->deposit) {
+        $str .= sprintf("%-45s%5s\n", $item->deposit->description, $item->deposit->amount);
+        $str .= "    " . $item->deposit->quantity . ' X ' . $item->deposit->unitPrice . PHP_EOL;
       }
 
-      if ($item->Discounts)
-        foreach ($item->Discounts as $discount)
-          $str .= sprintf("   %-42s%5s\n", $discount->Description, '-' . $discount->Amount);
+      if ($item->discounts)
+        foreach ($item->discounts as $discount)
+          $str .= sprintf("   %-42s%5s\n", $discount->description, '-' . $discount->amount);
     }
   
     $str .= sprintf("%-38s%s", "", "------------") . PHP_EOL;
-    $str .= sprintf("%s%-20s%-25s%5s", "", "Te betalen", $receipt->LinesScannedCount . ' art.', $receipt->TotalAmount) . PHP_EOL;
+    $str .= sprintf("%s%-20s%-25s%5s", "", "Te betalen", $receipt->linesScannedCount . ' art.', $receipt->totalAmount) . PHP_EOL;
     $str .= sprintf("%-38s%s", "", "============") . PHP_EOL;
   
-    $str .= sprintf("%-45s%5s\n", $receipt->Payments[0]->Description, $receipt->Payments[0]->Amount) . PHP_EOL;
+    $str .= sprintf("%-45s%5s\n", $receipt->payments[0]->description, $receipt->payments[0]->amount) . PHP_EOL;
   
     $str .= '--------------------------------------------------' . PHP_EOL . PHP_EOL;
-    $str .= trim(strip_tags(preg_replace('#<br\s*/?>#i', "\n", $receipt->Payments[0]->RawPaymentInformationHTML))) . PHP_EOL . PHP_EOL;
+    $str .= trim(strip_tags(preg_replace('#<br\s*/?>#i', "\n", $receipt->payments[0]->rawPaymentInformationHTML))) . PHP_EOL . PHP_EOL;
     $str .= '%              Bedr.Excl         BTW     Bedr.Incl' . PHP_EOL;
   
-    foreach ($receipt->Taxes as $tax)
-      $str .= sprintf("%-9s%15s%12s%14s\n", (int) $tax->Percentage, $tax->NetAmount, $tax->Amount, $tax->TaxableAmount);
+    foreach ($receipt->taxes as $tax)
+      $str .= sprintf("%-9s%15s%12s%14s\n", (int) $tax->percentage, $tax->netAmount, $tax->amount, $tax->taxableAmount);
   
     $str .= '--------------------------------------------------' . PHP_EOL;
-    $str .= sprintf("%-9s%15s%12s%14s\n", 'Som', $receipt->TotalTaxes->TotalNetAmount, $receipt->TotalTaxes->TotalAmount, $receipt->TotalTaxes->TotalTaxableAmount);
+    $str .= sprintf("%-9s%15s%12s%14s\n", 'Som', $receipt->totalTaxes->totalNetAmount, $receipt->totalTaxes->totalAmount, $receipt->totalTaxes->totalTaxableAmount);
   
-    $footer = sprintf("%-9s%10s%17s%14s\n", substr($receipt->StoreCode, 2), $receipt->SequenceNumber . '/' . $receipt->Workstation, date('d.m.y', strtotime($receipt->Date)), date('H:i', strtotime($receipt->Date)));
+    $footer = sprintf("%-9s%10s%17s%14s\n", substr($receipt->storeCode, 2), $receipt->sequenceNumber . '/' . $receipt->workstation, date('d.m.y', strtotime($receipt->date)), date('H:i', strtotime($receipt->date)));
   
     // 200x71
     $logo = imagecreatefromstring(base64_decode("iVBORw0KGgoAAAANSUhEUgAAAMgAAABPCAMAAACZM3rMAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAMAUExURUpKSktLS0xMTE1NTU5OTk9PT1BQUFFRUVJSUlNTU1RUVFVVVVZWVldXV1hYWFlZWVpaWltbW1" .
@@ -287,7 +261,7 @@ class LidlPlus
   
     // Add barcode
     $generator = new barcode_generator();
-    $barcode = $generator->render_image('itf', $receipt->BarCode, ['f' => 'png', 'w' => $width]);
+    $barcode = $generator->render_image('itf', $receipt->barCode, ['f' => 'png', 'w' => $width]);
     imagecopy($im, $barcode, 0, $pos, 0, 0, $width, 80);
     $pos += 80 + 30;
   
