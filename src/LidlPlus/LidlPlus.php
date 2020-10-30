@@ -38,7 +38,7 @@ class LidlPlus
     $ch = curl_init();
 
     $headers = [
-      'App-Version: 14.21.2',
+      'App-Version: 999.99.9',
       'Operating-System: iOS',
       'App: com.lidl.eci.lidl.plus',
       'Accept-Language: nl_NL'
