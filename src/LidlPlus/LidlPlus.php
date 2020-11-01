@@ -4,8 +4,10 @@ namespace Net\Bluewalk\LidlPlus;
 
 class LidlPlus
 {
+  private $language;
+  private $country;
   private $account_url = 'https://accounts.lidl.com/';
-  private $appgateway_url = 'https://appgateway.lidlplus.com/app/v19/NL/';
+  private $appgateway_url = 'https://appgateway.lidlplus.com/app/v19/';
   private $token;
   private $refresh_token;
   private $token_file;
@@ -15,8 +17,11 @@ class LidlPlus
   private static $ENDPOINT_RECEIPT = 'tickets/%s';
   private static $ENDPOINT_STORE = 'stores/%s';
 
-  public function __construct(string $refresh_token)
+  public function __construct(string $refresh_token, string $countryShort="NL", string $language="nl_NL")
   {
+    // Set country and language
+    $this->_setCountry($lang);
+
     $this->refresh_token = $refresh_token;
     $this->token_file = join(
       DIRECTORY_SEPARATOR,
@@ -41,7 +46,7 @@ class LidlPlus
       'App-Version: 999.99.9',
       'Operating-System: iOS',
       'App: com.lidl.eci.lidl.plus',
-      'Accept-Language: nl_NL'
+      'Accept-Language: '.$this->language
     ];
     $query_params = '';
 
@@ -61,7 +66,7 @@ class LidlPlus
       if ($data)
         $query_params = '?' . http_build_query($data);
 
-    curl_setopt($ch, CURLOPT_URL, $this->appgateway_url . $endpoint . $query_params);
+    curl_setopt($ch, CURLOPT_URL, $this->getAppGatewayUrl() . $endpoint . $query_params);
 
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
@@ -81,6 +86,19 @@ class LidlPlus
     curl_close($ch);
 
     return json_decode($result);
+  }
+
+  private function _setCountry(string $countryShort, string $language = null){
+	$this->country = strtoupper($countryShort);
+
+	if ($language == null)
+		$this->language = strtolower($this->country)."_".$this->country;
+	else
+		$this->language = $language;
+  }
+
+  private function _getAppGatewayUrl(){
+    return $this->appgateway_url."/".$this->language."/";
   }
 
   private function _request_auth()
