@@ -4,23 +4,18 @@ namespace Net\Bluewalk\LidlPlus;
 
 class LidlPlus
 {
-    private $language;
     private $country;
     private $account_url = 'https://accounts.lidl.com/';
-    private $appgateway_url = 'https://appgateway.lidlplus.com/app/v19/';
+    private $appgateway_url = 'https://appgateway.lidlplus.com/';
     private $token;
     private $refresh_token;
     private $token_file;
 
     private static $ENDPOINT_TOKEN = 'connect/token';
-    private static $ENDPOINT_RECEIPTS = 'tickets/list/%s';
-    private static $ENDPOINT_RECEIPT = 'tickets/%s';
-    private static $ENDPOINT_STORE = 'stores/%s';
 
-    public function __construct(string $refresh_token, string $countryShort = "NL", string $language = "nl_NL", string $pathToTokenFile = null)
-    {
-        // Set country and language
-        $this->_setCountry($countryShort, $language);
+    public function __construct(string $refresh_token, string $countryShort = "NL", string $pathToTokenFile = null)
+    {        
+        $this->country = strtoupper($countryShort);
 
         // Get TokenFile if existent
         $this->refresh_token = $refresh_token;
@@ -52,7 +47,7 @@ class LidlPlus
             'App-Version: 999.99.9',
             'Operating-System: iOS',
             'App: com.lidl.eci.lidl.plus',
-            'Accept-Language: ' . $this->language
+            'Accept-Language: ' . $this->country
         ];
         $query_params = '';
 
@@ -72,7 +67,7 @@ class LidlPlus
             if ($data)
                 $query_params = '?' . http_build_query($data);
 
-        curl_setopt($ch, CURLOPT_URL, $this->_getAppGatewayUrl() . $endpoint . $query_params);
+        curl_setopt($ch, CURLOPT_URL, $endpoint . $query_params);
 
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
@@ -94,19 +89,22 @@ class LidlPlus
         return json_decode($result);
     }
 
-    private function _setCountry(string $countryShort, string $language = null)
+    private function _getAppGatewayUrl(string $Type)
     {
-        $this->country = strtoupper($countryShort);
-
-        if ($language == null)
-            $this->language = strtolower($this->country) . "_" . $this->country;
-        else
-            $this->language = $language;
-    }
-
-    private function _getAppGatewayUrl()
-    {
-        return $this->appgateway_url . "/" . $this->country . "/";
+        switch ($Type) {
+            case 'Receipts':
+                $Endpoint = 'tickets/api/v1/' . $this->country . '/list/%s';
+                break;
+            
+            case 'Receipt':
+                $Endpoint = 'app/v24/' . $this->country  . '/tickets/%s';
+                break;
+            
+            default:
+                $Endpoint = 'stores/v2/' . $this->country . '/%s';
+                break;
+        }
+        return $this->appgateway_url . $Endpoint;
     }
 
     private function _request_auth()
@@ -157,19 +155,19 @@ class LidlPlus
     {
         $this->_checkAuth();
 
-        return $this->_request(sprintf($this::$ENDPOINT_RECEIPTS, $page));
+        return $this->_request(sprintf($this->_getAppGatewayUrl("Receipts"), $page));
     }
 
     public function GetReceipt(string $id = '')
     {
         $this->_checkAuth();
 
-        return $this->_request(sprintf($this::$ENDPOINT_RECEIPT, $id));
+        return $this->_request(sprintf($this->_getAppGatewayUrl("Receipt"), $id));
     }
 
     public function GetStore(string $store)
     {
-        return $this->_request(sprintf($this::$ENDPOINT_STORE, $store));
+        return $this->_request(sprintf($this->_getAppGatewayUrl("Store"), $store));
     }
 
     public function GetReceiptJpeg(string $id = '')
