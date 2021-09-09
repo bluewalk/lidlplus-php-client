@@ -14,7 +14,7 @@ class LidlPlus
 
     private static $ENDPOINT_TOKEN = 'connect/token';
 
-    public function __construct(string $refresh_token, string $countryShort = "NL", string $language = "nl_NL", string $pathToTokenFile = null)
+    public function __construct(string $refresh_token, string $countryShort = "NL", string $language = null, string $pathToTokenFile = null)
     {
         // Set country and language
         $this->_setCountry($countryShort, $language);
@@ -105,7 +105,6 @@ class LidlPlus
     {
         switch ($Type) {
             case 'Receipts':
-                # code...
                 $Endpoint = 'tickets/api/v1/' . $this->country . '/list/%s';
                 break;
             
