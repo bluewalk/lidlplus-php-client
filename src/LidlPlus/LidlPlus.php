@@ -6,7 +6,7 @@ class LidlPlus
 {
     private $country;
     private $account_url = 'https://accounts.lidl.com/';
-    private $ticket_url = 'https://tickets.lidlplus.com/api/v1/'
+    private $ticket_url = 'https://tickets.lidlplus.com/api/v1/';
     private $stores_url = 'https://appgateway.lidlplus.com/stores/v2/';
     private $token;
     private $refresh_token;
@@ -134,19 +134,19 @@ class LidlPlus
     {
         $this->_checkAuth();
 
-        return $this->_request($this->ticket_url . 'list/' . $page);
+        return $this->_request($this->ticket_url . $this->country . '/list/' . $page);
     }
 
     public function GetReceipt(string $id = '')
     {
         $this->_checkAuth();
 
-        return $this->_request($this->ticket_url . 'tickets/' . $id);
+        return $this->_request($this->ticket_url . $this->country . '/tickets/' . $id);
     }
 
     public function GetStore(string $store)
     {
-        return $this->_request($this->stores_url . $store);
+        return $this->_request($this->stores_url . $this->country . '/' . $store);
     }
 
     public function GetReceiptJpeg(string $id = '')
