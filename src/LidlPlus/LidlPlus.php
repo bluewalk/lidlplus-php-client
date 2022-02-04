@@ -6,27 +6,24 @@ class LidlPlus
 {
     private $country;
     private $account_url = 'https://accounts.lidl.com/';
-    private $appgateway_url = 'https://appgateway.lidlplus.com/';
+    private $ticket_url = 'https://tickets.lidlplus.com/api/v1/'
+    private $stores_url = 'https://appgateway.lidlplus.com/stores/v2/';
     private $token;
     private $refresh_token;
     private $token_file;
-
-    private static $ENDPOINT_TOKEN = 'connect/token';
 
     public function __construct(string $refresh_token, string $countryShort = "NL", string $pathToTokenFile = null)
     {        
         $this->country = strtoupper($countryShort);
 
-        // Get TokenFile if existent
         $this->refresh_token = $refresh_token;
-        if ($pathToTokenFile != null)
-            $tokenDir = sys_get_temp_dir();
-        else
-            $tokenDir = $pathToTokenFile;
 
         $this->token_file = join(
             DIRECTORY_SEPARATOR,
-            [$tokenDir, 'lidl-token_' . base64_encode($refresh_token) . '.json']
+            [
+                $pathToTokenFile ?? sys_get_temp_dir(),
+                'lidl-token_' . base64_encode($refresh_token) . '.json'
+            ]
         );
 
         if (file_exists($this->token_file))
@@ -89,31 +86,13 @@ class LidlPlus
         return json_decode($result);
     }
 
-    private function _getAppGatewayUrl(string $Type)
-    {
-        switch ($Type) {
-            case 'Receipts':
-                $Endpoint = 'tickets/api/v1/' . $this->country . '/list/%s';
-                break;
-            
-            case 'Receipt':
-                $Endpoint = 'app/v24/' . $this->country  . '/tickets/%s';
-                break;
-            
-            default:
-                $Endpoint = 'stores/v2/' . $this->country . '/%s';
-                break;
-        }
-        return $this->appgateway_url . $Endpoint;
-    }
-
     private function _request_auth()
     {
         $ch = curl_init();
 
         $request = 'refresh_token=' . $this->refresh_token . '&grant_type=refresh_token';
 
-        curl_setopt($ch, CURLOPT_URL, $this->account_url . $this::$ENDPOINT_TOKEN);
+        curl_setopt($ch, CURLOPT_URL, $this->account_url . 'connect/token');
 
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
@@ -155,19 +134,19 @@ class LidlPlus
     {
         $this->_checkAuth();
 
-        return $this->_request(sprintf($this->_getAppGatewayUrl("Receipts"), $page));
+        return $this->_request($this->ticket_url . 'list/' . $page);
     }
 
     public function GetReceipt(string $id = '')
     {
         $this->_checkAuth();
 
-        return $this->_request(sprintf($this->_getAppGatewayUrl("Receipt"), $id));
+        return $this->_request($this->ticket_url . 'tickets/' . $id);
     }
 
     public function GetStore(string $store)
     {
-        return $this->_request(sprintf($this->_getAppGatewayUrl("Store"), $store));
+        return $this->_request($this->stores_url . $store);
     }
 
     public function GetReceiptJpeg(string $id = '')
