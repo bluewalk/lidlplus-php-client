@@ -7,9 +7,7 @@ It even allows you to generate a JPEG receipt to use in your automation scripts,
 ## Get your refresh Token
 You first need to retrieve your refreshToken. This can be done with the nodeJS script getLidlRefreshToken.js. You might need to install
 additional node JS libraries first with npm (e.g. request or openid-client).
-Fill in your email, password into the script and replace the country and language with the country you are using your account with.
-If you do not change the country the script might not work properly as you need to first accept the terms and conditions of the given country.
-This can be done manually by pasting the URL into your browser and accepting the terms and conditions once.
+Run the script and enter the country and language with the country you are using your account with.
 
 ## How to use
 First of all you need to get your `refresh_token` from your app as described above. Afterwards the library can be used as described below.
