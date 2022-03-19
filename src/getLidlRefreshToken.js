@@ -17,8 +17,12 @@ const readline = require('readline').createInterface({
     input: process.stdin,
     output: process.stdout
 });
-const util = require('util');
-const question = util.promisify(readline.question).bind(readline);
+
+function question(query) {
+    return new Promise(resolve => {
+        readline.question(query, resolve);
+    })
+}
 
 Issuer.discover('https://accounts.lidl.com')
     .then(function (openidIssuer) {

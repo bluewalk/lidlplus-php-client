@@ -6,7 +6,10 @@ It even allows you to generate a JPEG receipt to use in your automation scripts,
 
 ## Get your refresh Token
 You first need to retrieve your refreshToken. This can be done with the nodeJS script getLidlRefreshToken.js. You might need to install
-additional node JS libraries first with npm (e.g. request or openid-client).
+additional node JS libraries first with npm (e.g. request or openid-client, puppeteer).
+```bash
+npm install puppeteer openid-client
+```
 Run the script and enter the country and language with the country you are using your account with.
 
 ## How to use
