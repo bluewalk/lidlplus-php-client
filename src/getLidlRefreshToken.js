@@ -74,8 +74,8 @@ Issuer.discover('https://accounts.lidl.com')
 
             page.on('request', request => {
                 if (request.isNavigationRequest()) {
-                    if (request._url.includes('com.lidlplus.app://callback')) {
-                        var url_parts = urlparse.parse(request._url, true);
+                    if (request.url().includes('com.lidlplus.app://callback')) {
+                        var url_parts = urlparse.parse(request.url(), true);
                         console.log('Query:\n', url_parts.query);
                         var query = url_parts.query;
                         console.log('auth-code:\n', query.code);
@@ -101,7 +101,7 @@ Issuer.discover('https://accounts.lidl.com')
                         console.log('undefined document!!!');
                     }
                 } else {
-                    console.log('undefined request...   ', request._url);
+                    console.log('undefined request...   ', request.url());
                 }
                 request.continue().catch((err) => {
                 });
